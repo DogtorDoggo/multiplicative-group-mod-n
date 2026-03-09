@@ -4,6 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Multiplicative Group Modulo n Calculator</title>
+    
+    <!-- MathJax for rendering LaTeX -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
     <style>
         :root {
             --primary: #2563eb;
@@ -22,76 +34,90 @@
         }
         .container {
             background: var(--card);
-            padding: 2rem;
+            padding: 2.5rem;
             border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-            max-width: 600px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            max-width: 650px;
             width: 100%;
         }
-        h1 { margin-top: 0; font-size: 1.5rem; color: var(--primary); }
-        p { font-size: 0.9rem; color: #64748b; }
+        h1 { margin-top: 0; font-size: 1.75rem; color: var(--primary); text-align: center; }
+        .description { text-align: center; margin-bottom: 2rem; color: #64748b; }
+        
         .input-group { margin: 20px 0; }
         label { display: block; margin-bottom: 8px; font-weight: 600; }
         input {
             width: 100%;
             padding: 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
             box-sizing: border-box;
-            font-size: 1rem;
+            font-size: 1.1rem;
+            transition: border-color 0.2s;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
         }
         button {
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
+            padding: 14px 24px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
+            font-size: 1rem;
             width: 100%;
-            transition: opacity 0.2s;
+            transition: transform 0.1s, opacity 0.2s;
         }
-        button:hover { opacity: 0.9; }
+        button:active { transform: scale(0.98); }
+        
         .result-area {
-            margin-top: 24px;
-            padding-top: 24px;
-            border-top: 1px solid #e2e8f0;
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 2px solid #f1f5f9;
         }
         .stats {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
+            gap: 15px;
+            margin-bottom: 20px;
         }
         .stat-box {
             background: #f1f5f9;
-            padding: 10px;
-            border-radius: 6px;
+            padding: 15px;
+            border-radius: 8px;
             text-align: center;
         }
-        .stat-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; }
-        .stat-value { font-weight: bold; font-size: 1.1rem; }
+        .stat-label { font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px;}
+        .stat-value { font-weight: 800; font-size: 1.25rem; color: var(--primary); }
+        
+        .elements-label { font-weight: 600; margin-bottom: 10px; display: block; }
         .elements {
-            background: #f8fafc;
+            background: #1e293b;
+            color: #f8fafc;
             padding: 15px;
-            border-radius: 6px;
+            border-radius: 8px;
             word-break: break-all;
-            font-family: monospace;
-            max-height: 300px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            max-height: 250px;
             overflow-y: auto;
-            border: 1px solid #e2e8f0;
+            line-height: 1.6;
+            font-size: 0.95rem;
         }
-        .error { color: #ef4444; font-size: 0.875rem; }
+        .error { color: #ef4444; font-size: 0.875rem; margin-top: 5px; height: 1em; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>$(\mathbb{Z}/n\mathbb{Z})^\times$ Calculator</h1>
-    <p>Find the set of integers $k$ such that $1 \le k < n$ and $\gcd(k, n) = 1$.</p>
+    <div class="description">
+        Finds all $k \in \{1, \dots, n-1\}$ where $\gcd(k, n) = 1$.
+    </div>
     
     <div class="input-group">
-        <label for="modN">Enter a positive integer (n):</label>
+        <label for="modN">Enter Modulo ($n$):</label>
         <input type="number" id="modN" placeholder="e.g. 12" min="1">
         <div id="errorMsg" class="error"></div>
     </div>
@@ -101,21 +127,20 @@
     <div id="result" class="result-area" style="display: none;">
         <div class="stats">
             <div class="stat-box">
-                <div class="stat-label">Order φ(n)</div>
+                <div class="stat-label">Order $\phi(n)$</div>
                 <div id="phiValue" class="stat-value"></div>
             </div>
             <div class="stat-box">
-                <div class="stat-label">Modulo</div>
+                <div class="stat-label">Modulo $n$</div>
                 <div id="nValue" class="stat-value"></div>
             </div>
         </div>
-        <label>Elements of the Group:</label>
+        <span class="elements-label">Group Elements:</span>
         <div id="elementList" class="elements"></div>
     </div>
 </div>
 
 <script>
-    // Euclidean algorithm to find GCD
     function gcd(a, b) {
         while (b) {
             a %= b;
@@ -134,24 +159,29 @@
         
         if (isNaN(n) || n < 1) {
             errorMsg.textContent = "Please enter a positive integer.";
+            resultDiv.style.display = "none";
             return;
         }
 
-        if (n > 100000) {
-            errorMsg.textContent = "Number too large for browser calculation. Try n < 100,000.";
+        // Safety limit for browser performance
+        if (n > 500000) {
+            errorMsg.textContent = "Please use a number smaller than 500,000.";
+            resultDiv.style.display = "none";
             return;
         }
 
         const elements = [];
-        for (let k = 1; k < n; k++) {
-            if (gcd(k, n) === 1) {
+        for (let k = 1; k <= n; k++) {
+            // For n=1, the group is usually defined as {0} or trivial
+            // For n > 1, we look for 1 <= k < n
+            if (n === 1) {
+                elements.push(0);
+                break;
+            }
+            if (k < n && gcd(k, n) === 1) {
                 elements.push(k);
             }
         }
-
-        // Handle n=1 case (group is just {0} or empty depending on definition, 
-        // but typically 1 is the identity)
-        if (n === 1) elements.push(0); 
 
         // Display results
         resultDiv.style.display = "block";
@@ -160,7 +190,7 @@
         document.getElementById('elementList').textContent = `{ ${elements.join(', ')} }`;
     }
 
-    // Allow Enter key to trigger calculation
+    // Support Enter key
     document.getElementById('modN').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') calculateGroup();
     });
