@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiplicative Group Modulo n Calculator</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+            margin: 0;
+        }
+        .container {
+            background: var(--card);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 { margin-top: 0; font-size: 1.5rem; color: var(--primary); }
+        p { font-size: 0.9rem; color: #64748b; }
+        .input-group { margin: 20px 0; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            transition: opacity 0.2s;
+        }
+        button:hover { opacity: 0.9; }
+        .result-area {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #e2e8f0;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .stat-box {
+            background: #f1f5f9;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .stat-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; }
+        .stat-value { font-weight: bold; font-size: 1.1rem; }
+        .elements {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 6px;
+            word-break: break-all;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+        }
+        .error { color: #ef4444; font-size: 0.875rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>$(\mathbb{Z}/n\mathbb{Z})^\times$ Calculator</h1>
+    <p>Find the set of integers $k$ such that $1 \le k < n$ and $\gcd(k, n) = 1$.</p>
+    
+    <div class="input-group">
+        <label for="modN">Enter a positive integer (n):</label>
+        <input type="number" id="modN" placeholder="e.g. 12" min="1">
+        <div id="errorMsg" class="error"></div>
+    </div>
+    
+    <button onclick="calculateGroup()">Calculate Group</button>
+
+    <div id="result" class="result-area" style="display: none;">
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-label">Order φ(n)</div>
+                <div id="phiValue" class="stat-value"></div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Modulo</div>
+                <div id="nValue" class="stat-value"></div>
+            </div>
+        </div>
+        <label>Elements of the Group:</label>
+        <div id="elementList" class="elements"></div>
+    </div>
+</div>
+
+<script>
+    // Euclidean algorithm to find GCD
+    function gcd(a, b) {
+        while (b) {
+            a %= b;
+            [a, b] = [b, a];
+        }
+        return a;
+    }
+
+    function calculateGroup() {
+        const input = document.getElementById('modN').value;
+        const n = parseInt(input);
+        const errorMsg = document.getElementById('errorMsg');
+        const resultDiv = document.getElementById('result');
+        
+        errorMsg.textContent = "";
+        
+        if (isNaN(n) || n < 1) {
+            errorMsg.textContent = "Please enter a positive integer.";
+            return;
+        }
+
+        if (n > 100000) {
+            errorMsg.textContent = "Number too large for browser calculation. Try n < 100,000.";
+            return;
+        }
+
+        const elements = [];
+        for (let k = 1; k < n; k++) {
+            if (gcd(k, n) === 1) {
+                elements.push(k);
+            }
+        }
+
+        // Handle n=1 case (group is just {0} or empty depending on definition, 
+        // but typically 1 is the identity)
+        if (n === 1) elements.push(0); 
+
+        // Display results
+        resultDiv.style.display = "block";
+        document.getElementById('nValue').textContent = n;
+        document.getElementById('phiValue').textContent = elements.length;
+        document.getElementById('elementList').textContent = `{ ${elements.join(', ')} }`;
+    }
+
+    // Allow Enter key to trigger calculation
+    document.getElementById('modN').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') calculateGroup();
+    });
+</script>
+
+</body>
+</html>
